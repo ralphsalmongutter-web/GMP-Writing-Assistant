@@ -146,17 +146,42 @@ elif st.session_state.step == 3:
     e["description"] = st.text_area(t("Description of the Deviation (What/Where/When/Who/Extent)", "偏差描述"), value=e.get("description", ""), height=180)
     e["immediate_action"] = st.text_area(t("Immediate Actions Taken (with timestamp and person responsible)", "已採取的立即措施"), value=e.get("immediate_action", ""), height=100)
     e["extent"] = st.text_area(t("Scope / Extent of Impact", "影響範圍"), value=e.get("extent", ""), height=80)
-    if st.button(t("🤖 AI: Improve My Description", "🤖 AI：改善我的描述"), key="enhance_desc"):
-        if e.get("description"):
-            with st.spinner(t("Improving...", "改善中...")):
-                ctx = str(st.session_state.basic)
-                e["description_ai"] = ask_claude(SYS_ENHANCE, "Context: " + ctx + "\n\nImprove this:\n" + e["description"])
-                st.session_state.event = e
+
+    if st.button(t("🔍 AI: Flag Writing Gaps", "🔍 AI：找出缺漏"), key="flag_gaps"):
+        all_text = (e.get("description", "") + " " + e.get("immediate_action", "") + " " + e.get("extent", "")).strip()
+        if all_text:
+            lang_instruction = "Reply in Traditional Chinese." if st.session_state.lang == "ZH" else "Reply in English."
+            sys_flag = """You are a strict GMP technical writing auditor for radiopharmaceutical manufacturing.
+Your job is to review deviation report text and flag ONLY what is missing or unclear.
+DO NOT rewrite or improve the text. DO NOT invent or assume any data.
+Output a bullet list of gaps only, using these categories:
+❌ Missing — something required is completely absent
+⚠️ Vague — something is present but too imprecise for audit
+Each bullet must be specific: say exactly what is missing and why it matters for GMP compliance.
+If something looks complete, do not comment on it."""
+            prompt = lang_instruction + "\n\nReview this deviation report text and flag all gaps:\n\n" + all_text
+            with st.spinner(t("Reviewing...", "審查中...")):
+                gaps = ask_claude(sys_flag, prompt)
+            st.session_state["step3_gaps"] = gaps
         else:
             st.warning(t("Please write something first.", "請先填寫內容。"))
-    if e.get("description_ai"):
-        st.success(t("✅ AI Suggestion:", "✅ AI 建議："))
-        st.code(e["description_ai"], language=None)
+
+    if st.session_state.get("step3_gaps"):
+        st.markdown("---")
+        st.markdown(f"#### 🔍 {t('AI Gap Review', 'AI 缺漏審查')}")
+        lines = st.session_state["step3_gaps"].strip().split("\n")
+        for line in lines:
+            line = line.strip()
+            if not line:
+                continue
+            if line.startswith("❌"):
+                st.error(line)
+            elif line.startswith("⚠️"):
+                st.warning(line)
+            else:
+                st.markdown(line)
+        st.markdown("---")
+
     st.session_state.event = e
     cb, cn = st.columns(2)
     with cb:
