@@ -128,11 +128,10 @@ elif st.session_state.step == 2:
     b["title"] = st.text_input(t("Document Title", "文件標題"), value=b.get("title", ""))
     st.session_state.basic = b
     if st.button(t("Next →", "下一步 →"), type="primary", use_container_width=True):
-    missing = [f for f in ["dev_number", "product", "title"] if not b.get(f)]
-    if missing:
-        st.warning(t("⚠️ Some fields are empty — you can still proceed, but the report may be incomplete.",
-                     "⚠️ 部分欄位尚未填寫，仍可繼續，但報告可能不完整。"))
-    st.session_state.step += 1
+    if not b.get("dev_number") and not b.get("product") and not b.get("title"):
+        st.warning(t("⚠️ Basic info is empty — you can still proceed, but the report may be incomplete.",
+                     "⚠️ 基本資訊尚未填寫，仍可繼續，但報告可能不完整。"))
+    st.session_state.step = 3
     st.rerun()
 
 # ── STEP 3 ───────────────────────────────────────────────────────────────────
