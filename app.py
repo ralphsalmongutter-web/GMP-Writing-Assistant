@@ -130,7 +130,7 @@ with st.sidebar:
         st.markdown(f"{icon} **Step {i}:** {s}")
     st.divider()
     
-        import json
+import json
 
     st.divider()
     st.markdown(f"### {t('Save / Load', '存檔 / 載入')}")
