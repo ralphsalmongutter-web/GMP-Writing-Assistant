@@ -129,6 +129,46 @@ with st.sidebar:
         icon = "✅" if st.session_state.step > i else ("🔵" if st.session_state.step == i else "⚪")
         st.markdown(f"{icon} **Step {i}:** {s}")
     st.divider()
+        import json
+
+    st.divider()
+    st.markdown(f"### {t('Save / Load', '存檔 / 載入')}")
+
+    # 存檔
+    save_data = {
+        "doc_type": st.session_state.doc_type,
+        "step": st.session_state.step,
+        "basic": st.session_state.basic,
+        "event": st.session_state.event,
+        "impact": st.session_state.impact,
+        "rca": st.session_state.rca,
+        "capa": st.session_state.capa,
+        "risk": st.session_state.risk,
+        "ai_capa_proposal": st.session_state.ai_capa_proposal,
+        "chat_history": st.session_state.chat_history,
+        "ra_matrix_result": st.session_state.get("ra_matrix_result", ""),
+    }
+    fn = st.session_state.basic.get("dev_number", "draft") + "_save.json"
+    st.sidebar.download_button(
+        label=t("💾 Save Progress", "💾 儲存進度"),
+        data=json.dumps(save_data, ensure_ascii=False, indent=2),
+        file_name=fn,
+        mime="application/json",
+        use_container_width=True
+    )
+
+    # 載入
+    uploaded = st.sidebar.file_uploader(
+        t("📂 Load Progress", "📂 載入存檔"),
+        type="json", key="load_file"
+    )
+    if uploaded is not None:
+        loaded = json.load(uploaded)
+        for k, v in loaded.items():
+            st.session_state[k] = v
+        st.rerun()
+
+    st.divider()
     if st.button(t("🔄 Start Over", "🔄 重新開始"), use_container_width=True):
         for k, v in DEFAULTS.items():
             st.session_state[k] = v if not isinstance(v, (dict, list)) else (v.copy() if isinstance(v, dict) else [])
