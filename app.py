@@ -223,10 +223,13 @@ elif st.session_state.step==6:
     with c1: risk["probability"]=st.selectbox(t("Probability","發生概率"),prob_opts,index=prob_opts.index(risk.get("probability","Unlikely (1)")))
     with c2: risk["severity"]=st.selectbox(t("Severity","嚴重程度"),sev_opts,index=sev_opts.index(risk.get("severity","Negligible (1)")))
     risk["risk_justification"]=st.text_area(t("Risk Justification (justify BOTH probability AND severity)","風險理由（需分別說明概率和嚴重程度）"),value=risk.get("risk_justification",""),height=100)
-    if st.button(t("🤖 AI: Challenge My Risk Score","🤖 AI：挑戰我的風險評分"),key="challenge_risk"):
+       if st.button(t("🤖 AI: Challenge My Risk Score","🤖 AI：挑戰我的風險評分"),key="challenge_risk"):
         text=f"Hazard: {risk.get('hazard','')}\nProb: {risk.get('probability','')}\nSev: {risk.get('severity','')}\nJustification: {risk.get('risk_justification','')}"
         if text.strip():
-            with st.spinner(t("Analysing...","分析中...")): st.warning(f"🤖 {ask_claude(SYS_RISK,f'Challenge this risk assessment:\n{text}\nEvent: {st.session_state.basic.get(\"title\",\"\")}')}")
+            with st.spinner(t("Analysing...","分析中...")):
+                event_title = st.session_state.basic.get("title","")
+                result = ask_claude(SYS_RISK, f"Challenge this risk assessment:\n{text}\nEvent: {event_title}")
+                st.warning(f"🤖 {result}")
     st.session_state.capa=capa; st.session_state.risk=risk
     cb,cg=st.columns(2)
     with cb:
