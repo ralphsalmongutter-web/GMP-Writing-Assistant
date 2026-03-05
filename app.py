@@ -6,6 +6,7 @@ from docx.enum.text import WD_ALIGN_PARAGRAPH
 from datetime import datetime
 import anthropic
 import pandas as pd
+import json  # 
 
 st.set_page_config(page_title="GMP DocWriter | XI", page_icon="📋", layout="wide", initial_sidebar_state="expanded")
 
@@ -128,9 +129,6 @@ with st.sidebar:
     for i, s in enumerate(steps_labels, 1):
         icon = "✅" if st.session_state.step > i else ("🔵" if st.session_state.step == i else "⚪")
         st.markdown(f"{icon} **Step {i}:** {s}")
-    st.divider()
-    
-import json
 
     st.divider()
     st.markdown(f"### {t('Save / Load', '存檔 / 載入')}")
