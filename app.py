@@ -433,4 +433,69 @@ if st.session_state.report_generated:
     def gen_word():
         doc = Document()
         doc.add_heading("Investigation, Corrective Action, Preventive Action Form", 0).alignment = WD_ALIGN_PARAGRAPH.CENTER
-        doc.add_paragraph("Document #: " + b.get("dev_number", "") + " | Site: " +
+        doc.add_paragraph("Document #: " + b.get("dev_number", "") + " | Site: " + b.get("site", "") + " | Business Area: " + b.get("business_area", "") + " | Event Type: " + b.get("event_type", ""))
+        doc.add_paragraph("Date of Occurrence: " + b.get("date_occurrence", "") + " | Date of Discovery: " + b.get("date_discovery", "") + " | Person Involved: " + b.get("operator", ""))
+        doc.add_paragraph("Source Documentation: " + b.get("source_doc", ""))
+        doc.add_heading("Title", 2); doc.add_paragraph(b.get("title", ""))
+        doc.add_heading("Description of the Deviation", 2)
+        doc.add_paragraph(e.get("description", ""))
+        doc.add_paragraph("Immediate Actions: " + e.get("immediate_action", ""))
+        doc.add_paragraph("Scope: " + e.get("extent", ""))
+        doc.add_heading("Impact Assessment", 2)
+        doc.add_paragraph("Process Impact: " + imp.get("process_impact", ""))
+        doc.add_paragraph("Product Quality Impact: " + imp.get("quality_impact", ""))
+        doc.add_paragraph("Patient Safety Impact: " + imp.get("patient_impact", ""))
+        doc.add_heading("Root Cause Analysis — 6M", 2)
+        for m_key in ["Man", "Method", "Machine", "Materials", "Mother_Nature", "Measurement"]:
+            doc.add_paragraph(m_key + ": " + rca.get("m_" + m_key + "_status", "") + " — " + rca.get("m_" + m_key + "_detail", ""))
+        doc.add_paragraph("Root Cause: " + rca.get("root_cause_statement", ""))
+        doc.add_heading("CAPA", 2)
+        tbl = doc.add_table(rows=3, cols=3); tbl.style = "Table Grid"
+        tbl.rows[0].cells[0].text = "Type"; tbl.rows[0].cells[1].text = "Description"; tbl.rows[0].cells[2].text = "Owner / Due"
+        tbl.rows[1].cells[0].text = "CA"; tbl.rows[1].cells[1].text = capa.get("ca_description", ""); tbl.rows[1].cells[2].text = capa.get("ca_owner", "") + " / " + capa.get("ca_due", "")
+        tbl.rows[2].cells[0].text = "PA"; tbl.rows[2].cells[1].text = capa.get("pa_description", ""); tbl.rows[2].cells[2].text = capa.get("pa_owner", "") + " / " + capa.get("pa_due", "")
+        doc.add_paragraph("Effectiveness Check: " + capa.get("effectiveness_check", ""))
+        doc.add_heading("Risk Assessment", 2)
+        rt = doc.add_table(rows=2, cols=4); rt.style = "Table Grid"
+        rt.rows[0].cells[0].text = "Hazard"; rt.rows[0].cells[1].text = "Probability"; rt.rows[0].cells[2].text = "Severity"; rt.rows[0].cells[3].text = "Risk Level"
+        try:
+            ps = int(risk.get("probability", "Unlikely (1)")[-2])
+            ss = int(risk.get("severity", "Negligible (1)")[-2])
+            score = ps * ss
+            level = "High" if score >= 12 else ("Medium" if score >= 6 else "Low")
+        except Exception: score = "N/A"; level = "N/A"
+        rt.rows[1].cells[0].text = risk.get("hazard", ""); rt.rows[1].cells[1].text = risk.get("probability", "")
+        rt.rows[1].cells[2].text = risk.get("severity", ""); rt.rows[1].cells[3].text = str(level) + " (" + str(score) + ")"
+        doc.add_paragraph("Justification: " + risk.get("risk_justification", ""))
+        if st.session_state.get("ra_matrix_result"):
+            doc.add_heading("AI Risk Matrix Recommendation", 2)
+            doc.add_paragraph(st.session_state["ra_matrix_result"])
+        doc.add_heading("Approval", 2)
+        at = doc.add_table(rows=4, cols=2); at.style = "Table Grid"
+        at.rows[0].cells[0].text = "Function"; at.rows[0].cells[1].text = "Signature / Date"
+        for i, role in enumerate(["Author/Initiator", "Department Approval", "Quality Assurance Approval"]):
+            at.rows[i + 1].cells[0].text = role
+        if st.session_state.chat_history:
+            doc.add_page_break()
+            doc.add_heading("Appendix A — AI-Assisted RCA Conversation Log", 1)
+            doc.add_paragraph("Generated: " + datetime.now().strftime("%Y-%b-%d %H:%M") + " | Tool: GMP DocWriter XI")
+            for role, msg in st.session_state.chat_history:
+                p = doc.add_paragraph()
+                label = "Investigator" if role == "user" else "AI RCA Coach"
+                run = p.add_run("[" + label + "]: " + msg)
+                run.bold = (role == "user"); run.italic = (role == "ai")
+                p.paragraph_format.space_after = Pt(6)
+        if st.session_state.ai_capa_proposal:
+            doc.add_page_break()
+            doc.add_heading("Appendix B — AI CAPA Proposal", 1)
+            doc.add_paragraph(st.session_state.ai_capa_proposal)
+        doc.add_paragraph("\nSOP References: SOP-ISOP-023 | SOP-ISOP-024 | SOP-QA-005")
+        buf = BytesIO(); doc.save(buf); buf.seek(0); return buf
+
+    fn = b.get("dev_number", "report") + "_" + b.get("title", "")[:25].replace(" ", "-") + ".docx"
+    st.download_button(
+        label=t("⬇️ Download Word Report (.docx)", "⬇️ 下載 Word 報告 (.docx)"),
+        data=gen_word(), file_name=fn,
+        mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        type="primary", use_container_width=True
+    )
