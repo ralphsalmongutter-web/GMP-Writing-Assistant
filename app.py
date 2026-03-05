@@ -129,6 +129,7 @@ with st.sidebar:
         icon = "✅" if st.session_state.step > i else ("🔵" if st.session_state.step == i else "⚪")
         st.markdown(f"{icon} **Step {i}:** {s}")
     st.divider()
+    
         import json
 
     st.divider()
