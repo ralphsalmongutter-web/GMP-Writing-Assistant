@@ -128,12 +128,12 @@ elif st.session_state.step == 2:
     b["title"] = st.text_input(t("Document Title", "文件標題"), value=b.get("title", ""))
     st.session_state.basic = b
     if st.button(t("Next →", "下一步 →"), type="primary", use_container_width=True):
-        missing = [f for f in ["dev_number", "product", "date_occurrence", "source_doc", "title"] if not b.get(f)]
-        if missing:
-            st.error(t("Please fill in all required fields.", "請填寫所有必填欄位。"))
-        else:
-            st.session_state.step = 3
-            st.rerun()
+    missing = [f for f in ["dev_number", "product", "title"] if not b.get(f)]
+    if missing:
+        st.warning(t("⚠️ Some fields are empty — you can still proceed, but the report may be incomplete.",
+                     "⚠️ 部分欄位尚未填寫，仍可繼續，但報告可能不完整。"))
+    st.session_state.step += 1
+    st.rerun()
 
 # ── STEP 3 ───────────────────────────────────────────────────────────────────
 elif st.session_state.step == 3:
@@ -189,12 +189,12 @@ If something looks complete, do not comment on it."""
             st.session_state.step = 2
             st.rerun()
     with cn:
-        if st.button(t("Next →", "下一步 →"), type="primary", use_container_width=True):
-            if not e.get("description"):
-                st.error(t("Please fill in the deviation description.", "請填寫偏差描述。"))
-            else:
-                st.session_state.step = 4
-                st.rerun()
+      if st.button(t("Next →", "下一步 →"), type="primary", use_container_width=True):
+    if not e.get("description"):
+        st.warning(t("⚠️ Description is empty — you can still proceed, but the report may be incomplete.",
+                     "⚠️ 偏差描述尚未填寫，仍可繼續，但報告可能不完整。"))
+    st.session_state.step = 4
+    st.rerun()
 
 # ── STEP 4 ───────────────────────────────────────────────────────────────────
 elif st.session_state.step == 4:
@@ -226,12 +226,12 @@ elif st.session_state.step == 4:
             st.session_state.step = 3
             st.rerun()
     with cn:
-        if st.button(t("Next →", "下一步 →"), type="primary", use_container_width=True):
-            if not imp.get("process_impact"):
-                st.error(t("Please complete the impact assessment.", "請完成影響評估。"))
-            else:
-                st.session_state.step = 5
-                st.rerun()
+if st.button(t("Next →", "下一步 →"), type="primary", use_container_width=True):
+    if not imp.get("process_impact"):
+        st.warning(t("⚠️ Impact assessment is empty — you can still proceed, but the report may be incomplete.",
+                     "⚠️ 影響評估尚未填寫，仍可繼續，但報告可能不完整。"))
+    st.session_state.step = 5
+    st.rerun()
 
 # ── STEP 5 ───────────────────────────────────────────────────────────────────
 elif st.session_state.step == 5:
@@ -304,12 +304,12 @@ elif st.session_state.step == 5:
             st.session_state.step = 4
             st.rerun()
     with cn:
-        if st.button(t("Next →", "下一步 →"), type="primary", use_container_width=True):
-            if not rca.get("root_cause_statement"):
-                st.error(t("Please complete the root cause statement.", "請完成根本原因陳述。"))
-            else:
-                st.session_state.step = 6
-                st.rerun()
+     if st.button(t("Next →", "下一步 →"), type="primary", use_container_width=True):
+    if not rca.get("root_cause_statement"):
+        st.warning(t("⚠️ Root cause statement is empty — you can still proceed, but the report may be incomplete.",
+                     "⚠️ 根本原因陳述尚未填寫，仍可繼續，但報告可能不完整。"))
+    st.session_state.step = 6
+    st.rerun()
 
 # ── STEP 6 ───────────────────────────────────────────────────────────────────
 elif st.session_state.step == 6:
