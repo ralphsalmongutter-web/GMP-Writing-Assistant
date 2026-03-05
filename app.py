@@ -44,7 +44,7 @@ def get_client():
 def ask_claude(system_prompt, user_message):
     client = get_client()
     msg = client.messages.create(
-        model="claude-3-haiku-20240307",
+        model="claude-3-sonnet-20240229",
         max_tokens=1024,
         system=system_prompt,
         messages=[{"role": "user", "content": user_message}],
