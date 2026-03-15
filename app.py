@@ -236,10 +236,34 @@ elif st.session_state.step == 3:
                 st.session_state["step3_gaps"] = ask_claude(SYS_FLAG, prompt)
         else:
             st.warning(t("Please write something first.", "請先填寫內容。"))
-    if st.session_state.get("step3_gaps"):
+        if st.session_state.get("step3_gaps"):
         st.markdown("---")
         st.markdown(f"#### 🔍 {t('AI Gap Review', 'AI 缺漏審查')}")
         show_gaps(st.session_state["step3_gaps"])
+
+        if st.button(t("📝 Generate Improvement Template", "📝 生成補寫模板"), key="gen_template"):
+            all_text_for_template = (e.get("description", "") + " " + e.get("immediate_action", "") + " " + e.get("extent", "")).strip()
+            prompt = (
+                lang_prefix() +
+                "\n\nBased on the gaps identified, rewrite the original text as an improvement template. "
+                "For every missing or vague piece of information, insert a blank in this format: _____ (insert relevant detail). "
+                "Keep the original sentence structure as close as possible. "
+                "Do NOT invent or assume any data. "
+                "Output only the improved template paragraph(s), no explanation.\n\n"
+                "Original text:\n" + all_text_for_template +
+                "\n\nGaps identified:\n" + st.session_state["step3_gaps"]
+            )
+            with st.spinner(t("Generating template...", "生成模板中...")):
+                st.session_state["step3_template"] = ask_claude(SYS_FLAG, prompt)
+
+        if st.session_state.get("step3_template"):
+            st.markdown(f"#### 📝 {t('Improvement Template', '補寫模板')}")
+            st.info(st.session_state["step3_template"])
+            st.caption(t(
+                "⚠️ Replace all blanks with verified data from batch records. Do not estimate.",
+                "⚠️ 請將所有空白欄位替換為批次記錄中的已驗證數據，勿估算。"
+            ))
+
         st.markdown("---")
     st.session_state.event = e
     cb, cn = st.columns(2)
