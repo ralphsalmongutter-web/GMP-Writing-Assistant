@@ -228,6 +228,7 @@ elif st.session_state.step == 3:
     e["description"] = st.text_area(t("Description of the Deviation (What/Where/When/Who/Extent)", "偏差描述"), value=e.get("description", ""), height=180)
     e["immediate_action"] = st.text_area(t("Immediate Actions Taken (with timestamp and person responsible)", "已採取的立即措施"), value=e.get("immediate_action", ""), height=100)
     e["extent"] = st.text_area(t("Scope / Extent of Impact", "影響範圍"), value=e.get("extent", ""), height=80)
+
     if st.button(t("🔍 AI: Flag Writing Gaps", "🔍 AI：找出缺漏"), key="flag_gaps"):
         all_text = (e.get("description", "") + " " + e.get("immediate_action", "") + " " + e.get("extent", "")).strip()
         if all_text:
@@ -236,32 +237,31 @@ elif st.session_state.step == 3:
                 st.session_state["step3_gaps"] = ask_claude(SYS_FLAG, prompt)
         else:
             st.warning(t("Please write something first.", "請先填寫內容。"))
-        if st.session_state.get("step3_gaps"):
-            st.markdown("---")
-            st.markdown(f"#### 🔍 {t('AI Gap Review', 'AI 缺漏審查')}")
-            show_gaps(st.session_state["step3_gaps"])
 
-            if st.button(t("📝 Generate Improvement Template", "📝 生成補寫模板"), key="gen_template"):
-                all_text_for_template = (
-                    st.session_state.event.get("description", "") + " " +
-                    st.session_state.event.get("immediate_action", "") + " " +
-                    st.session_state.event.get("extent", "")
-                ).strip()
-                st.write("DEBUG:", all_text_for_template)
-            
-                if all_text_for_template:
-                    prompt = (
-                        lang_prefix() +
-                        "\n\nBased on the gaps identified, rewrite the original text as an improvement template. "
-                        "For every missing or vague piece of information, insert a blank in this format: _____ (insert relevant detail). "
-                        "Keep the original sentence structure as close as possible. "
-                        "Do NOT invent or assume any data. "
-                        "Output only the improved template paragraph(s), no explanation.\n\n"
-                        "Original text:\n" + all_text_for_template +
-                        "\n\nGaps identified:\n" + st.session_state["step3_gaps"]
-                    )
-                    with st.spinner(t("Generating template...", "生成模板中...")):
-                        st.session_state["step3_template"] = ask_claude(SYS_FLAG, prompt)
+    if st.session_state.get("step3_gaps"):
+        st.markdown("---")
+        st.markdown(f"#### 🔍 {t('AI Gap Review', 'AI 缺漏審查')}")
+        show_gaps(st.session_state["step3_gaps"])
+
+        if st.button(t("📝 Generate Improvement Template", "📝 生成補寫模板"), key="gen_template"):
+            all_text_for_template = (
+                st.session_state.event.get("description", "") + " " +
+                st.session_state.event.get("immediate_action", "") + " " +
+                st.session_state.event.get("extent", "")
+            ).strip()
+            if all_text_for_template:
+                prompt = (
+                    lang_prefix() +
+                    "\n\nBased on the gaps identified, rewrite the original text as an improvement template. "
+                    "For every missing or vague piece of information, insert a blank in this format: _____ (insert relevant detail). "
+                    "Keep the original sentence structure as close as possible. "
+                    "Do NOT invent or assume any data. "
+                    "Output only the improved template paragraph(s), no explanation.\n\n"
+                    "Original text:\n" + all_text_for_template +
+                    "\n\nGaps identified:\n" + st.session_state["step3_gaps"]
+                )
+                with st.spinner(t("Generating template...", "生成模板中...")):
+                    st.session_state["step3_template"] = ask_claude(SYS_FLAG, prompt)
             else:
                 st.warning(t("Please fill in the description fields first.", "請先填寫描述欄位。"))
 
@@ -274,6 +274,7 @@ elif st.session_state.step == 3:
             ))
 
         st.markdown("---")
+
     st.session_state.event = e
     cb, cn = st.columns(2)
     with cb:
@@ -285,6 +286,7 @@ elif st.session_state.step == 3:
                 st.warning(t("⚠️ Description is empty — you can still proceed, but the report may be incomplete.",
                              "⚠️ 偏差描述尚未填寫，仍可繼續，但報告可能不完整。"))
             st.session_state.step = 4; st.rerun()
+
 
 elif st.session_state.step == 4:
     st.subheader(f"Step 4 / 6 — {t('Impact Assessment', '影響評估')}")
