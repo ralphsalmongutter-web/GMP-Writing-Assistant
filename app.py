@@ -243,10 +243,11 @@ elif st.session_state.step == 3:
 
             if st.button(t("📝 Generate Improvement Template", "📝 生成補寫模板"), key="gen_template"):
                 all_text_for_template = (
-                    e.get("description", "") + " " +
-                    e.get("immediate_action", "") + " " +
-                    e.get("extent", "")
+                    st.session_state.event.get("description", "") + " " +
+                    st.session_state.event.get("immediate_action", "") + " " +
+                    st.session_state.event.get("extent", "")
                 ).strip()
+
                 if all_text_for_template:
                     prompt = (
                         lang_prefix() +
