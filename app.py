@@ -247,7 +247,7 @@ elif st.session_state.step == 3:
                     st.session_state.event.get("immediate_action", "") + " " +
                     st.session_state.event.get("extent", "")
                 ).strip()
-            st.write("DEBUG:", all_text_for_template)
+                st.write("DEBUG:", all_text_for_template)
             
                 if all_text_for_template:
                     prompt = (
