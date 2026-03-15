@@ -241,7 +241,7 @@ elif st.session_state.step == 3:
             st.markdown(f"#### 🔍 {t('AI Gap Review', 'AI 缺漏審查')}")
             show_gaps(st.session_state["step3_gaps"])
 
-               if st.button(t("📝 Generate Improvement Template", "📝 生成補寫模板"), key="gen_template"):
+            if st.button(t("📝 Generate Improvement Template", "📝 生成補寫模板"), key="gen_template"):
             all_text_for_template = (
                 e.get("description", "") + " " +
                 e.get("immediate_action", "") + " " +
