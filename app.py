@@ -237,9 +237,9 @@ elif st.session_state.step == 3:
         else:
             st.warning(t("Please write something first.", "請先填寫內容。"))
         if st.session_state.get("step3_gaps"):
-        st.markdown("---")
-        st.markdown(f"#### 🔍 {t('AI Gap Review', 'AI 缺漏審查')}")
-        show_gaps(st.session_state["step3_gaps"])
+            st.markdown("---")
+            st.markdown(f"#### 🔍 {t('AI Gap Review', 'AI 缺漏審查')}")
+            show_gaps(st.session_state["step3_gaps"])
 
         if st.button(t("📝 Generate Improvement Template", "📝 生成補寫模板"), key="gen_template"):
             all_text_for_template = (e.get("description", "") + " " + e.get("immediate_action", "") + " " + e.get("extent", "")).strip()
