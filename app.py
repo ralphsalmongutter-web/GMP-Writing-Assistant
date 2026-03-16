@@ -283,6 +283,16 @@ elif st.session_state.step == 3:
             st.session_state["step3_template"] = edited
 
         st.markdown("---")
+        if st.button(t("✅ Apply to report fields", "✅ 套用至報告欄位"), key="apply_step3", type="primary"):
+                lines = st.session_state["step3_template"].split("\n\n")
+                if len(lines) >= 1:
+                    st.session_state.event["description"] = lines[0].strip()
+                if len(lines) >= 2:
+                    st.session_state.event["immediate_action"] = lines[1].strip()
+                if len(lines) >= 3:
+                    st.session_state.event["extent"] = lines[2].strip()
+                st.success(t("✅ Applied! Scroll up to review.", "✅ 已套用！請向上捲動確認。"))
+                st.rerun()
 
     st.session_state.event = e
     cb, cn = st.columns(2)
