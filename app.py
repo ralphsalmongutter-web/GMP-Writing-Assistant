@@ -377,9 +377,21 @@ elif st.session_state.step == 4:
                 key="step4_template_edit"
             )
             st.session_state["step4_template"] = edited
-
         st.markdown("---")
-
+        if st.button(t("✅ Apply to report fields", "✅ 套用至報告欄位"), key="apply_step4", type="primary"):
+                raw = st.session_state["step4_template"]
+                import re
+                process = re.search(r'\*\*Process:\*\*(.*?)(?=\*\*Quality:\*\*)', raw, re.DOTALL)
+                quality = re.search(r'\*\*Quality:\*\*(.*?)(?=\*\*Patient:\*\*)', raw, re.DOTALL)
+                patient = re.search(r'\*\*Patient:\*\*(.*?)$', raw, re.DOTALL)
+                if process:
+                    st.session_state.impact["process_impact"] = process.group(1).strip()
+                if quality:
+                    st.session_state.impact["quality_impact"] = quality.group(1).strip()
+                if patient:
+                    st.session_state.impact["patient_impact"] = patient.group(1).strip()
+                st.success(t("✅ Applied! Scroll up to review.", "✅ 已套用！請向上捲動確認。"))
+                st.rerun()
     st.session_state.impact = imp
     cb, cn = st.columns(2)
     with cb:
