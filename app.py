@@ -269,12 +269,18 @@ elif st.session_state.step == 3:
                 st.warning(t("Please fill in the description fields first.", "請先填寫描述欄位。"))
 
         if st.session_state.get("step3_template"):
-            st.markdown(f"#### 📝 {t('Improvement Template', '補寫模板')}")
-            st.info(st.session_state["step3_template"])
+            st.markdown(f"#### 📝 {t('Improvement Template — edit directly below', '補寫模板 — 可直接在下方編輯')}")
             st.caption(t(
                 "⚠️ Replace all blanks with verified data from batch records. Do not estimate.",
                 "⚠️ 請將所有空白欄位替換為批次記錄中的已驗證數據，勿估算。"
             ))
+            edited = st.text_area(
+                t("Edit template here — copy back to fields above when done", "在此編輯模板 — 完成後複製回上方欄位"),
+                value=st.session_state["step3_template"],
+                height=300,
+                key="step3_template_edit"
+            )
+            st.session_state["step3_template"] = edited
 
         st.markdown("---")
 
