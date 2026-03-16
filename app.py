@@ -290,7 +290,6 @@ elif st.session_state.step == 3:
                              "⚠️ 偏差描述尚未填寫，仍可繼續，但報告可能不完整。"))
             st.session_state.step = 4; st.rerun()
 
-
 elif st.session_state.step == 4:
     st.subheader(f"Step 4 / 6 — {t('Impact Assessment', '影響評估')}")
     imp = st.session_state.impact
@@ -298,13 +297,14 @@ elif st.session_state.step == 4:
         "⚠️ Address all three levels separately. Each claim must be supported by objective evidence.",
         "⚠️ 請分別說明以下三個層面，每項主張須有客觀依據支持。"
     ))
-    imp["process_impact"] = st.text_area(t("1. Process Impact — specific steps affected, what changed", "1. 製程影響 — 受影響的具體步驟"), value=imp.get("process_impact", ""), height=100)
-    imp["quality_impact"] = st.text_area(t("2. Product Quality Impact — test data or objective evidence", "2. 產品品質影響 — 測試數據或客觀依據"), value=imp.get("quality_impact", ""), height=100)
-    imp["patient_impact"] = st.text_area(t("3. Patient Safety Impact — traceability: process → quality → patient outcome", "3. 病患安全影響 — 可追溯性：製程 → 品質 → 病患結果"), value=imp.get("patient_impact", ""), height=100)
+    imp["process_impact"] = st.text_area(t("1. Process Impact — specific steps affected, what changed", "1. 製程影響 — 受影響的具體步驟"), value=imp.get("process_impact", ""), height=150)
+    imp["quality_impact"] = st.text_area(t("2. Product Quality Impact — test data or objective evidence", "2. 產品品質影響 — 測試數據或客觀依據"), value=imp.get("quality_impact", ""), height=150)
+    imp["patient_impact"] = st.text_area(t("3. Patient Safety Impact — traceability: process → quality → patient outcome", "3. 病患安全影響 — 可追溯性：製程 → 品質 → 病患結果"), value=imp.get("patient_impact", ""), height=150)
     if st.session_state.doc_type == "PRDI":
         disp_opts = ["Release — all specs met", "Reject — spec failure", "Conditional release with QA justification"]
         imp["disposition"] = st.selectbox(t("Batch Disposition", "批次處置"), disp_opts)
-        imp["disposition_rationale"] = st.text_area(t("Disposition Rationale", "處置理由"), value=imp.get("disposition_rationale", ""), height=80)
+        imp["disposition_rationale"] = st.text_area(t("Disposition Rationale", "處置理由"), value=imp.get("disposition_rationale", ""), height=100)
+
     if st.button(t("🔍 AI: Flag Impact Gaps", "🔍 AI：找出影響評估缺漏"), key="flag_impact"):
         text = "Process: " + imp.get("process_impact", "") + "\nQuality: " + imp.get("quality_impact", "") + "\nPatient: " + imp.get("patient_impact", "")
         if text.strip():
@@ -313,11 +313,52 @@ elif st.session_state.step == 4:
                 st.session_state["step4_gaps"] = ask_claude(SYS_IMPACT, prompt)
         else:
             st.warning(t("Please fill in the impact fields first.", "請先填寫影響評估欄位。"))
+
     if st.session_state.get("step4_gaps"):
         st.markdown("---")
         st.markdown(f"#### 🔍 {t('AI Impact Review', 'AI 影響評估審查')}")
         show_gaps(st.session_state["step4_gaps"])
+
+        if st.button(t("📝 Generate Improvement Template", "📝 生成補寫模板"), key="gen_impact_template"):
+            all_impact_text = (
+                "Process: " + st.session_state.impact.get("process_impact", "") + "\n" +
+                "Quality: " + st.session_state.impact.get("quality_impact", "") + "\n" +
+                "Patient: " + st.session_state.impact.get("patient_impact", "")
+            ).strip()
+            if all_impact_text:
+                prompt = (
+                    lang_prefix() +
+                    "\n\nBased on the gaps identified, rewrite ONLY the original text as an improvement template. "
+                    "Do NOT add any new sections, CAPA, root cause, or disposition content that was not in the original text. "
+                    "Only fill gaps that exist within the original text provided. "
+                    "For every missing or vague piece of information, insert a blank in this format: _____ (insert relevant detail). "
+                    "Keep the original sentence structure as close as possible. "
+                    "Do NOT invent or assume any data. "
+                    "Output only the improved version of the original text, no explanation, no extra sections.\n\n"
+                    "Original text:\n" + all_impact_text +
+                    "\n\nGaps identified:\n" + st.session_state["step4_gaps"]
+                )
+                with st.spinner(t("Generating template...", "生成模板中...")):
+                    st.session_state["step4_template"] = ask_claude(SYS_IMPACT, prompt)
+            else:
+                st.warning(t("Please fill in the impact fields first.", "請先填寫影響評估欄位。"))
+
+        if st.session_state.get("step4_template"):
+            st.markdown(f"#### 📝 {t('Improvement Template — edit directly below', '補寫模板 — 可直接在下方編輯')}")
+            st.caption(t(
+                "⚠️ Replace all blanks with verified data from batch records. Do not estimate.",
+                "⚠️ 請將所有空白欄位替換為批次記錄中的已驗證數據，勿估算。"
+            ))
+            edited = st.text_area(
+                t("Edit template here — copy back to fields above when done", "在此編輯模板 — 完成後複製回上方欄位"),
+                value=st.session_state["step4_template"],
+                height=300,
+                key="step4_template_edit"
+            )
+            st.session_state["step4_template"] = edited
+
         st.markdown("---")
+
     st.session_state.impact = imp
     cb, cn = st.columns(2)
     with cb:
@@ -329,6 +370,7 @@ elif st.session_state.step == 4:
                 st.warning(t("⚠️ Impact assessment is empty — you can still proceed, but the report may be incomplete.",
                              "⚠️ 影響評估尚未填寫，仍可繼續，但報告可能不完整。"))
             st.session_state.step = 5; st.rerun()
+
 
 elif st.session_state.step == 5:
     st.subheader(f"Step 5 / 6 — {t('Root Cause Analysis', '根本原因分析')}")
