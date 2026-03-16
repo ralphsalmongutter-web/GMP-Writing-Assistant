@@ -252,14 +252,17 @@ elif st.session_state.step == 3:
             if all_text_for_template:
                 prompt = (
                     lang_prefix() +
-                    "\n\nBased on the gaps identified, rewrite the original text as an improvement template. "
-                    "For every missing or vague piece of information, insert a blank in this format: _____ (insert relevant detail). "
+                    "\n\nBased on the gaps identified, rewrite ONLY the original text as an improvement template. "
+                    "Do NOT add any new sections, CAPA, root cause, or disposition content that was not in the original text. "
+                    "Only fill gaps that exist within the original text provided. "
+                    "For every missing or vague piece of information within the original text, insert a blank in this format: _____ (insert relevant detail). "
                     "Keep the original sentence structure as close as possible. "
                     "Do NOT invent or assume any data. "
-                    "Output only the improved template paragraph(s), no explanation.\n\n"
+                    "Output only the improved version of the original text, no explanation, no extra sections.\n\n"
                     "Original text:\n" + all_text_for_template +
                     "\n\nGaps identified:\n" + st.session_state["step3_gaps"]
                 )
+
                 with st.spinner(t("Generating template...", "生成模板中...")):
                     st.session_state["step3_template"] = ask_claude(SYS_FLAG, prompt)
             else:
